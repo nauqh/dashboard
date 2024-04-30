@@ -1,5 +1,3 @@
-import pandas as pd
-from ast import literal_eval
 import plotly.graph_objects as go
 
 
@@ -71,12 +69,12 @@ def graph_busy_hour(df_busy_hour):
         xaxis=dict(title='Hour'),
         yaxis=dict(title='Number of threads'),
         hoverlabel=dict(bgcolor='#000', font_color='#fff'),
-        margin=dict(t=30, l=0, r=0, b=30)
+        margin=dict(t=0, l=0, r=0, b=0)
     )
     fig.update_layout()
     fig.update_yaxes(showgrid=False)
 
-    return fig
+    return fig, df_busy_hour[x:y+1]['number_of_threads'].sum()
 
 
 def graph_busy_day(df_busy_day, ascending):
@@ -100,7 +98,7 @@ def graph_busy_day(df_busy_day, ascending):
         xaxis=dict(title=''),
         yaxis=dict(title='Number of threads'),
         hoverlabel=dict(bgcolor='#000', font_color='#fff'),
-        margin=dict(t=30, l=0, r=0, b=30)
+        margin=dict(t=0, l=0, r=0, b=0)
     )
     fig.update_yaxes(showgrid=False)
 
@@ -112,7 +110,7 @@ def graph_popular_topics(df_merged):
 
     # Add bar trace
     fig.add_trace(go.Bar(
-        x=df_merged['number_of_threads'],
+        x=df_merged.head()['number_of_threads'],
         y=df_merged['module'],
         text=df_merged['number_of_threads'],
         customdata=df_merged['name'],
@@ -124,9 +122,10 @@ def graph_popular_topics(df_merged):
     fig.update_layout(
         title='',
         xaxis=dict(title='Number of threads'),
-        yaxis=dict(title='Topics'),
+        yaxis=dict(title=''),
         hoverlabel=dict(bgcolor='#000', font_color='#fff'),
-        margin=dict(t=30, l=0, r=0, b=30)
+        margin=dict(t=0, l=0, r=0, b=0),
+        height=300
     )
     return fig
 
@@ -159,4 +158,26 @@ def graph_response_time(df):
                        showarrow=False,
                        font_color="red",
                        font_size=15)
+    return fig
+
+
+def graph_topics2(df):
+    decades = df['module']
+    counts = df['number_of_threads']
+    colors = ['#b9fbc0', '#98f5e1', '#8eecf5',
+              '#90dbf4', '#a3c4f3', '#cfbaf0', 'f1c0e8']
+
+    fig = go.Figure(data=[go.Pie(labels=decades, values=counts, hole=0.4, sort=False,
+                                 direction='clockwise', pull=[0.1]*len(decades))])
+
+    fig.update_traces(name='', textinfo='none',
+                      hovertemplate='Module: %{label}<br>Threads: %{value}',
+                      marker=dict(colors=colors, line=dict(color='#000', width=1)))
+
+    fig.update_layout(
+        margin=dict(t=0, l=0, r=0),
+        hoverlabel=dict(bgcolor='#000', font_color='#fff'),
+        height=400
+    )
+
     return fig

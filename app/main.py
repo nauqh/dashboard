@@ -13,8 +13,6 @@ st.set_page_config(
 st.title("📑Discord question-center April Recap")
 st.markdown("_Prototype v1.0.0_")
 
-# NOTE: Connect db and read data
-
 
 @st.cache_data
 def load_data():
@@ -35,7 +33,6 @@ with cols[0]:
     ui.metric_card(title="Total Threads",
                    content=len(df), key="card1")
 with cols[1]:
-
     ui.metric_card(title="Learners Posted Questions",
                    content=df['author_id'].nunique(), key="card2")
 with cols[2]:
@@ -78,6 +75,7 @@ df_busy_day = df.groupby(['Day']).agg({'id': 'count'}).reset_index().rename(
 df_busy_hour = df.groupby(['Hour']).agg(
     {'id': 'count'}).reset_index().rename(columns={'id': 'number_of_threads'})
 df_busy_hour['Hour'] = (df_busy_hour['Hour'] + 8) % 24
+fig_busy_hour, metric2 = graph_busy_hour(df_busy_hour)
 
 # NOTE: BUSIEST DAY
 # Convert the 'Day' column to a categorical type with the specified order
@@ -90,16 +88,22 @@ df_busy_day['Day'] = pd.Categorical(df_busy_day['Day'],
 df_busy_day = df_busy_day.sort_values(by='Day')
 
 st.write("##")
-cols = st.columns([1, 3])
+st.subheader("Time learners post the most questions")
+cols = st.columns([1, 3.5])
 with cols[0]:
-    ...
+    ui.metric_card(title="Total TAs",
+                   content=6, description="+2 TAs from last month", key="card4")
+    ui.metric_card(title="Threads In Busiest Hour",
+                   content=float(metric2),
+                   description=f"{metric2*100/len(df):.2f}% of total threads",
+                   key="card5")
+    ui.metric_card(title="Total Threads",
+                   content=len(df), key="card6")
 with cols[1]:
-    st.subheader("Time learners post the most questions")
-    fig = graph_busy_hour(df_busy_hour)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig_busy_hour, use_container_width=True)
 
 st.write("##")
-cols = st.columns([1, 1.5])
+cols = st.columns([1, 1])
 with cols[0]:
     st.subheader("Busiest day")
     option = ui.tabs(options=['Busiest', 'Least busy'],
@@ -125,10 +129,10 @@ with cols[1]:
     df_merged['module'] = df_merged['name'].apply(
         lambda x: module_names.get(x, x))
 
-    fig = graph_popular_topics(df_merged)
-
+    fig = graph_topics2(df_merged[:7])
     st.subheader("Most asked topics")
     st.plotly_chart(fig, use_container_width=True)
+
 
 # NOTE: RESPONSE TIME
 df['response'] = pd.to_datetime(
