@@ -129,3 +129,34 @@ def graph_popular_topics(df_merged):
         margin=dict(t=30, l=0, r=0, b=30)
     )
     return fig
+
+
+def graph_response_time(df):
+    fig = go.Figure(data=go.Scatter(
+        x=df.index,
+        y=df['response_time'][::-1].dt.total_seconds() / 60,
+        mode='lines',
+        text=df['created_at'][::-1].dt.date,
+        hovertemplate='Posted on %{text}<extra></extra>'
+    ))
+
+    fig.update_layout(
+        title='',
+        yaxis_title='Response Time (minutes)',
+        margin=dict(t=30, l=0, r=0, b=30),
+        hoverlabel=dict(bgcolor='#000', font_color='#fff')
+    )
+
+    fig.update_xaxes(title='Threads', showticklabels=False)
+    fig.update_yaxes(showgrid=False)
+
+    fig.add_shape(type="line",
+                  x0=df.index.min(), y0=200,
+                  x1=df.index.max(), y1=200,
+                  line=dict(color="red", width=2))
+    fig.add_annotation(x=df.index.min(), y=230,
+                       text="3 hours",
+                       showarrow=False,
+                       font_color="red",
+                       font_size=15)
+    return fig

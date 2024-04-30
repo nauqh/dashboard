@@ -14,11 +14,20 @@ st.set_page_config(
     layout="wide")
 
 st.title("📑Discord question-center April Recap")
+st.markdown("_Prototype v1.0.0_")
 
 # NOTE: Connect db and read data
-df = pd.read_csv("data/threads.csv",
-                 parse_dates=['created_at'],
-                 converters={'tags': literal_eval, 'messages': literal_eval})
+
+
+@st.cache_data
+def load_data(path: str):
+    data = pd.read_csv(path,
+                       parse_dates=['created_at'],
+                       converters={'tags': literal_eval, 'messages': literal_eval})
+    return data
+
+
+df = load_data("data/threads.csv")
 conn = sqlite3.connect('data/teo.db')
 
 st.write("##")
@@ -68,7 +77,6 @@ df_thread_counts = df['author_id'].value_counts().rename_axis(
     'id').reset_index(name='number_of_threads')
 df_merged = pd.merge(df_thread_counts, df_user, how="left", on='id')
 
-
 fig = graph_active_learners(df_merged)
 
 st.write("##")
@@ -107,12 +115,14 @@ df_busy_day['Day'] = pd.Categorical(df_busy_day['Day'],
 # Sort the DataFrame by the 'Day' column
 df_busy_day = df_busy_day.sort_values(by='Day')
 
-
 st.write("##")
-st.subheader("Time learners post the most questions")
-
-fig = graph_busy_hour(df_busy_hour)
-st.plotly_chart(fig, use_container_width=True)
+cols = st.columns([1, 3])
+with cols[0]:
+    ...
+with cols[1]:
+    st.subheader("Time learners post the most questions")
+    fig = graph_busy_hour(df_busy_hour)
+    st.plotly_chart(fig, use_container_width=True)
 
 st.write("##")
 cols = st.columns([1, 1.5])
@@ -145,7 +155,6 @@ with cols[1]:
     fig = graph_popular_topics(df_merged)
 
     st.subheader("Most asked topics")
-    st.write("##")
     st.plotly_chart(fig, use_container_width=True)
 
 # NOTE: RESPONSE TIME
@@ -153,36 +162,11 @@ df['response'] = pd.to_datetime(
     df['messages'].apply(lambda x: x[-2]['created_at']))
 df['response_time'] = df['response'] - df['created_at']
 
-fig = go.Figure(data=go.Scatter(x=df.index,
-                                y=df['response_time'][::-
-                                                      1].dt.total_seconds() / 60,
-                                mode='lines+markers',
-                                text=df['created_at'][::-1].dt.date,
-                                hovertemplate='Posted on %{text}<extra></extra>'
-                                ))
-
-fig.update_layout(
-    title='',
-    yaxis_title='Response Time (minutes)',
-    margin=dict(t=30, l=0, r=0, b=30),
-    hoverlabel=dict(bgcolor='#000', font_color='#fff')
-)
-
-fig.update_xaxes(title='Threads', showticklabels=False)
-fig.update_yaxes(showgrid=False)
-
-fig.add_shape(type="line",
-              x0=df.index.min(), y0=200,
-              x1=df.index.max(), y1=200,
-              line=dict(color="red", width=2))
-fig.add_annotation(x=df.index.min(), y=230,
-                   text="3 hours",
-                   showarrow=False,
-                   font_color="red",
-                   font_size=15)
 
 st.write("##")
+
 st.subheader("Response time")
+fig = graph_response_time(df)
 st.plotly_chart(fig, use_container_width=True)
 
 st.write("""
