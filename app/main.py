@@ -14,7 +14,9 @@ st.title("📑Discord question-center April Recap")
 st.markdown("_Prototype v1.0.0_")
 
 with st.sidebar:
-    ...
+    course = st.selectbox(
+        'Select course',
+        ('Data Science', 'Data Analysis Express', 'Fullstack Development'))
 
 
 @st.cache_data
@@ -94,7 +96,7 @@ with cols[0]:
                   delta_color="off")
     with st.container(border=True):
         st.metric(label="**Threads In Busiest Day**",
-                  value=32, delta=f"{metric2*100/len(df):.2f}% of total threads",
+                  value=32, delta=f"{32*100/len(df):.2f}% of total threads",
                   delta_color="off")
 
 with cols[1]:

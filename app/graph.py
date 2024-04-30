@@ -78,6 +78,7 @@ def graph_busy_hour(df_busy_hour):
 
 
 def graph_busy_day(df_busy_day, ascending):
+    df_busy_day['Day'] = df_busy_day['Day'].apply(lambda x: x[:3])
     busiest_days = df_busy_day.sort_values(
         by='number_of_threads', ascending=ascending).head(2)['Day'].to_list()
     fig = go.Figure()
@@ -152,6 +153,7 @@ def graph_topics2(df):
     fig.update_layout(
         margin=dict(t=20, l=0, r=0),
         hoverlabel=dict(bgcolor='#000', font_color='#fff'),
+        height=350
     )
 
     return fig
