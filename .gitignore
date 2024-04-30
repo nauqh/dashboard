@@ -2,3 +2,4 @@ env/
 .env
 **/__pycache__
 Notebook.ipynb
+.ipynb_checkpoints/
