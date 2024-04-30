@@ -1,12 +1,9 @@
-import sqlite3
 import streamlit as st
 import streamlit_shadcn_ui as ui
 
 import pandas as pd
 from ast import literal_eval
 from graph import *
-import plotly.graph_objects as go
-
 
 st.set_page_config(
     page_title="Dashboard",
@@ -20,15 +17,17 @@ st.markdown("_Prototype v1.0.0_")
 
 
 @st.cache_data
-def load_data(path: str):
-    data = pd.read_csv(path,
-                       parse_dates=['created_at'],
-                       converters={'tags': literal_eval, 'messages': literal_eval})
-    return data
+def load_data():
+    df = pd.read_csv("data/threads.csv",
+                     parse_dates=['created_at'],
+                     converters={'tags': literal_eval, 'messages': literal_eval})
+    users = pd.read_csv("data/users.csv",
+                        converters={'roles': literal_eval})
+    tags = pd.read_csv("data/tags.csv")
+    return df, users, tags
 
 
-df = load_data("data/threads.csv")
-conn = sqlite3.connect('data/teo.db')
+df, users, df_tag = load_data()
 
 st.write("##")
 cols = st.columns(3)
@@ -40,42 +39,17 @@ with cols[1]:
     ui.metric_card(title="Learners Posted Questions",
                    content=df['author_id'].nunique(), key="card2")
 with cols[2]:
-    query = """
--- Learners are users with one role and that role is #learner
-WITH
-    users_with_only_learner_role AS (
-        SELECT
-            user_id,
-            role_id
-        FROM
-            user_role
-        WHERE
-            role_id = 957854915194126339
-        GROUP BY
-            user_id
-        HAVING
-            COUNT(role_id) = 1
-    )
-SELECT
-    u.user_id,
-    users.name
-FROM
-    users_with_only_learner_role u
-    JOIN users ON u.user_id = users.id
-WHERE
-    users.name IS NOT NULL;
-"""
+    df_learner = users[(users['roles'].apply(len) == 2) & (
+        users['roles'].apply(lambda x: 957854915194126339 in x))]
     ui.metric_card(title="Total Learners",
-                   content=len(pd.read_sql_query(query, conn)), key="card3")
+                   content=len(df_learner), key="card3")
 
 
 # NOTE: ACTIVE LEARNER
-# Get all users from database
-df_user = pd.read_sql_query("select * from users", conn)
 # Count threads by user
 df_thread_counts = df['author_id'].value_counts().rename_axis(
     'id').reset_index(name='number_of_threads')
-df_merged = pd.merge(df_thread_counts, df_user, how="left", on='id')
+df_merged = pd.merge(df_thread_counts, df_learner, how="left", on='id')
 
 fig = graph_active_learners(df_merged)
 
@@ -135,7 +109,6 @@ with cols[0]:
     st.plotly_chart(fig, use_container_width=True)
 with cols[1]:
     # NOTE: MOST ASKED MODULE
-    df_tag = pd.read_sql_query("select * from tags", conn)
     df_tag_counts = df.explode('tags')['tags'].value_counts(
     ).rename_axis('id').reset_index(name='number_of_threads')
     # Dictionary for module names
