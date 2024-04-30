@@ -105,31 +105,6 @@ def graph_busy_day(df_busy_day, ascending):
     return fig
 
 
-def graph_popular_topics(df_merged):
-    fig = go.Figure()
-
-    # Add bar trace
-    fig.add_trace(go.Bar(
-        x=df_merged.head()['number_of_threads'],
-        y=df_merged['module'],
-        text=df_merged['number_of_threads'],
-        customdata=df_merged['name'],
-        hovertemplate='Tag: #%{customdata}<extra></extra>',
-        marker_color="#1f77b4",
-        orientation='h'
-    ))
-
-    fig.update_layout(
-        title='',
-        xaxis=dict(title='Number of threads'),
-        yaxis=dict(title=''),
-        hoverlabel=dict(bgcolor='#000', font_color='#fff'),
-        margin=dict(t=0, l=0, r=0, b=0),
-        height=300
-    )
-    return fig
-
-
 def graph_response_time(df):
     fig = go.Figure(data=go.Scatter(
         x=df.index,
@@ -175,9 +150,8 @@ def graph_topics2(df):
                       marker=dict(colors=colors, line=dict(color='#000', width=1)))
 
     fig.update_layout(
-        margin=dict(t=0, l=0, r=0),
+        margin=dict(t=20, l=0, r=0),
         hoverlabel=dict(bgcolor='#000', font_color='#fff'),
-        height=400
     )
 
     return fig
