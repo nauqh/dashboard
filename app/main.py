@@ -7,7 +7,7 @@ from graph import *
 
 st.set_page_config(
     page_title="Dashboard",
-    page_icon="📊",
+    page_icon="data/favicon.png",
     layout="wide")
 
 st.title("📑Discord question-center April Recap")
