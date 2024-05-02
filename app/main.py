@@ -13,10 +13,10 @@ st.set_page_config(
 st.title("📑Discord question-center April Recap")
 st.markdown("_Prototype v1.0.0_")
 
-with st.sidebar:
-    course = st.selectbox(
-        'Select course',
-        ('Data Science', 'Data Analysis Express', 'Fullstack Development'))
+# with st.sidebar:
+#     course = st.selectbox(
+#         'Select course',
+#         ('Data Science', 'Data Analysis Express', 'Fullstack Development'))
 
 
 @st.cache_data
