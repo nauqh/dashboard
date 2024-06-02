@@ -28,7 +28,8 @@ def load_data():
         converters={'tags': literal_eval,
                     'messages': literal_eval}
     )
-    users = pd.read_csv("members_data.csv", converters={'roles': literal_eval})
+    users = pd.read_csv("data/members_data.csv",
+                        converters={'roles': literal_eval})
     tags = pd.read_csv("data/tags.csv")
     return df, users, tags
 
@@ -62,7 +63,8 @@ with cols[2]:
         st.metric(
             label="Total Learners",
             value=len(df_learner),
-            delta="To be updated"
+            delta="To be updated",
+            delta_color="off"
         )
 
 # NOTE: ACTIVE LEARNER
@@ -75,7 +77,7 @@ with cols[2]:
 with st.container(border=True):
     st.subheader("Most active learners")
     option = ui.tabs(options=['April', 'May'],
-                     default_value='April')
+                     default_value='May')
     df_to_graph = df_may if option == 'May' else df_april
     df_thread_counts = df_to_graph['author_id'].value_counts().rename_axis(
         'id').reset_index(name='number_of_threads')
@@ -86,32 +88,19 @@ with st.container(border=True):
 
 # NOTE: BUSIEST HOUR
 # Extract day of week and hour
-df['Day'] = df['created_at'].dt.day_name()
 df['Hour'] = df['created_at'].dt.hour
 
-# Count threads by day and hour
-df_busy_day = df.groupby(['Day']).agg({'id': 'count'}).reset_index().rename(
-    columns={'id': 'number_of_threads'})
+# Count threads by hour
 df_busy_hour = df.groupby(['Hour']).agg(
     {'id': 'count'}).reset_index().rename(columns={'id': 'number_of_threads'})
 df_busy_hour['Hour'] = (df_busy_hour['Hour'] + 8) % 24
 fig_busy_hour, metric2 = graph_busy_hour(df_busy_hour)
 
-# NOTE: BUSIEST DAY
-# Convert the 'Day' column to a categorical type with the specified order
-df_busy_day['Day'] = pd.Categorical(df_busy_day['Day'],
-                                    categories=[
-                                        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                                    ordered=True)
-
-# Sort the DataFrame by the 'Day' column
-df_busy_day = df_busy_day.sort_values(by='Day')
-
 cols = st.columns([1, 3.5])
 with cols[0]:
     with st.container(border=True):
         st.metric(label="Total TAs",
-                  value=6, delta="+2 TAs from last month",
+                  value=8, delta="+2 TAs from last month",
                   delta_color="off")
     with st.container(border=True):
         st.metric(label="**Threads In Busiest Hour**",
@@ -127,14 +116,11 @@ with cols[1]:
         st.subheader("Time learners post the most questions")
         st.plotly_chart(fig_busy_hour, use_container_width=True)
 
-cols = st.columns([1, 1])
+cols = st.columns([1.5, 1])
 with cols[0]:
     with st.container(border=True):
         st.subheader("Busiest day")
-        option = ui.tabs(options=['Busiest', 'Least busy'],
-                         default_value='Busiest')
-        ascending = True if option == 'Least busy' else False
-        fig = graph_busy_day(df_busy_day, ascending)
+        fig = graph_busy_day2(df_april, df_may)
         st.plotly_chart(fig, use_container_width=True)
 with cols[1]:
     # NOTE: MOST ASKED MODULE

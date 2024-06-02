@@ -1,4 +1,5 @@
 import plotly.graph_objects as go
+import pandas as pd
 
 
 def graph_active_learners(df_merged):
@@ -100,6 +101,70 @@ def graph_busy_day(df_busy_day, ascending):
         yaxis=dict(title='Number of threads'),
         hoverlabel=dict(bgcolor='#000', font_color='#fff'),
         margin=dict(t=0, l=0, r=0, b=0)
+    )
+    fig.update_yaxes(showgrid=False)
+
+    return fig
+
+
+def graph_busy_day2(df_april, df_may):
+    # Extract day and hour from 'created_at' column
+    df_april['Day'] = df_april['created_at'].dt.day_name()
+    df_may['Day'] = df_may['created_at'].dt.day_name()
+
+    # Count threads by day for April and May
+    df_busy_day_april = df_april.groupby(['Day']).agg(
+        {'id': 'count'}).reset_index().rename(columns={'id': 'number_of_threads_april'})
+    df_busy_day_may = df_may.groupby(['Day']).agg(
+        {'id': 'count'}).reset_index().rename(columns={'id': 'number_of_threads_may'})
+
+    # Merge the data frames
+    df_busy_day = pd.merge(df_busy_day_april, df_busy_day_may,
+                           on='Day', how='outer').fillna(0)
+
+    # Convert the 'Day' column to a categorical type with the specified order
+    df_busy_day['Day'] = pd.Categorical(df_busy_day['Day'],
+                                        categories=[
+                                            'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                                        ordered=True)
+
+    # Sort the DataFrame by the 'Day' column
+    df_busy_day = df_busy_day.sort_values(by='Day')
+
+    # Create a grouped bar chart
+    fig = go.Figure()
+
+    fig.add_trace(go.Bar(
+        x=df_busy_day['Day'],
+        y=df_busy_day['number_of_threads_april'],
+        name='April',
+        text=df_busy_day['number_of_threads_april'],
+        textposition='outside',
+        hovertemplate='%{x} April: %{y} threads<extra></extra>'
+    ))
+
+    fig.add_trace(go.Bar(
+        x=df_busy_day['Day'],
+        y=df_busy_day['number_of_threads_may'],
+        name='May',
+        text=df_busy_day['number_of_threads_may'],
+        textposition='outside',
+        hovertemplate='%{x} May: %{y} threads<extra></extra>'
+    ))
+
+    # Update layout
+    fig.update_layout(
+        barmode='group',
+        title='',
+        xaxis=dict(title=''),
+        yaxis=dict(title='Number of threads'),
+        hoverlabel=dict(bgcolor='#000', font_color='#fff'),
+        margin=dict(t=0, l=0, r=0, b=0),
+        legend=dict(
+            orientation="h",
+            y=1,
+            x=0.5
+        )
     )
     fig.update_yaxes(showgrid=False)
 
