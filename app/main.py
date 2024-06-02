@@ -8,56 +8,79 @@ from graph import *
 st.set_page_config(
     page_title="Dashboard",
     page_icon="data/favicon.png",
-    layout="wide")
-
-st.title("📑Discord question-center April Recap")
-st.markdown("_Prototype v1.0.0_")
+    layout="wide"
+)
 
 # with st.sidebar:
 #     course = st.selectbox(
 #         'Select course',
 #         ('Data Science', 'Data Analysis Express', 'Fullstack Development'))
 
+st.title(f"📑Discord question-center May Recap")
+st.markdown("_Prototype v0.0.12_")
+
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("data/threads.csv",
-                     parse_dates=['created_at'],
-                     converters={'tags': literal_eval, 'messages': literal_eval})
-    users = pd.read_csv("data/users.csv",
-                        converters={'roles': literal_eval})
+    df = pd.read_csv(
+        "data/threads.csv",
+        parse_dates=['created_at'],
+        converters={'tags': literal_eval,
+                    'messages': literal_eval}
+    )
+    users = pd.read_csv("members_data.csv", converters={'roles': literal_eval})
     tags = pd.read_csv("data/tags.csv")
     return df, users, tags
 
 
 df, users, df_tag = load_data()
+df_april = df[df['created_at'].dt.month == 4]
+df_may = df[df['created_at'].dt.month == 5]
 
 st.write("##")
 cols = st.columns(3)
 with cols[0]:
     with st.container(border=True):
-        st.metric(label="Total Threads",
-                  value=len(df))
+        st.metric(
+            label="Total Threads",
+            value=len(df_may),
+            delta=f"{(len(df_may) - len(df_april))/len(df_april)*100:.1f}% than last month"
+        )
 with cols[1]:
     with st.container(border=True):
-        st.metric(label="Learners Posted Questions",
-                  value=df['author_id'].nunique())
+        nunique_april = df_april['author_id'].nunique()
+        nunique_may = df_may['author_id'].nunique()
+        st.metric(
+            label="Learners Posted Questions",
+            value=df_may['author_id'].nunique(),
+            delta=f"{(nunique_april - nunique_may)/nunique_april*100:.1f}% than last month",
+        )
 with cols[2]:
     df_learner = users[(users['roles'].apply(len) == 2) & (
         users['roles'].apply(lambda x: 957854915194126339 in x))]
     with st.container(border=True):
-        st.metric(label="Total Learners",
-                  value=len(df_learner))
+        st.metric(
+            label="Total Learners",
+            value=len(df_learner),
+            delta="To be updated"
+        )
 
 # NOTE: ACTIVE LEARNER
 # Count threads by user
-df_thread_counts = df['author_id'].value_counts().rename_axis(
-    'id').reset_index(name='number_of_threads')
-df_merged = pd.merge(df_thread_counts, df_learner, how="left", on='id')
+# df_thread_counts = df['author_id'].value_counts().rename_axis(
+#     'id').reset_index(name='number_of_threads')
+# df_merged = pd.merge(df_thread_counts, df_learner, how="left", on='id')
 
 
 with st.container(border=True):
     st.subheader("Most active learners")
+    option = ui.tabs(options=['April', 'May'],
+                     default_value='April')
+    df_to_graph = df_may if option == 'May' else df_april
+    df_thread_counts = df_to_graph['author_id'].value_counts().rename_axis(
+        'id').reset_index(name='number_of_threads')
+    df_merged = pd.merge(df_thread_counts, df_learner, how="left", on='id')
+
     fig = graph_active_learners(df_merged)
     st.plotly_chart(fig, use_container_width=True)
 
