@@ -172,6 +172,9 @@ def graph_busy_day2(df_april, df_may):
 
 
 def graph_response_time(df):
+    df['response'] = pd.to_datetime(
+        df['messages'].apply(lambda x: x[-2]['created_at']))
+    df['response_time'] = df['response'] - df['created_at']
     fig = go.Figure(data=go.Scatter(
         x=df.index,
         y=df['response_time'][::-1].dt.total_seconds() / 60,

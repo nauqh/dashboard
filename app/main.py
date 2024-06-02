@@ -145,16 +145,17 @@ with cols[1]:
     with st.container(border=True):
         fig = graph_topics2(df_merged[:7])
         st.subheader("Most asked topics")
+        option = ui.tabs(options=['April', 'May'],
+                         default_value='May', key="option4")
         st.plotly_chart(fig, use_container_width=True)
 
 # NOTE: RESPONSE TIME
-df['response'] = pd.to_datetime(
-    df['messages'].apply(lambda x: x[-2]['created_at']))
-df['response_time'] = df['response'] - df['created_at']
-
 with st.container(border=True):
     st.subheader("Response time")
-    fig = graph_response_time(df)
+    option = ui.tabs(options=['April', 'May'],
+                     default_value='May', key="option")
+    df_to_graph = df_may if option == 'May' else df_april
+    fig = graph_response_time(df_to_graph)
     st.plotly_chart(fig, use_container_width=True)
 
 st.write("##")
