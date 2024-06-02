@@ -30,7 +30,7 @@ def load_data():
     )
     users = pd.read_csv("data/members_data.csv",
                         converters={'roles': literal_eval})
-    tags = pd.read_csv("data/tags.csv")
+    tags = pd.read_csv("tags.csv")
     return df, users, tags
 
 
@@ -127,26 +127,12 @@ with cols[0]:
         st.plotly_chart(fig, use_container_width=True)
 with cols[1]:
     # NOTE: MOST ASKED MODULE
-    df_tag_counts = df.explode('tags')['tags'].value_counts(
-    ).rename_axis('id').reset_index(name='number_of_threads')
-    # Dictionary for module names
-    module_names = {
-        'M1.1': 'SQL Basics',
-        'M1.2': 'SQL Advanced',
-        'M2.1': 'Python 101',
-        'M3.1': 'Pandas basics',
-        'M3.2': 'Prepare your data',
-        'M4': 'Data visualization'
-    }
-    df_merged = pd.merge(df_tag_counts, df_tag, how="left", on='id')
-    df_merged = df_merged.dropna(subset=['name']).reset_index(drop=True)
-    df_merged['module'] = df_merged['name'].apply(
-        lambda x: module_names.get(x, x))
     with st.container(border=True):
-        fig = graph_topics2(df_merged[:7])
         st.subheader("Most asked topics")
         option = ui.tabs(options=['April', 'May'],
                          default_value='May', key="option4")
+        df_to_graph = df_may if option == 'May' else df_april
+        fig = graph_topics(df_to_graph, df_tag)
         st.plotly_chart(fig, use_container_width=True)
 
 # NOTE: RESPONSE TIME

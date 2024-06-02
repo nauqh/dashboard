@@ -205,9 +205,26 @@ def graph_response_time(df):
     return fig
 
 
-def graph_topics2(df):
-    decades = df['module']
-    counts = df['number_of_threads']
+def graph_topics(df, df_tag):
+    df_tag_counts = df.explode('tags')['tags'].value_counts(
+    ).rename_axis('id').reset_index(name='number_of_threads')
+    # Dictionary for module names
+    module_names = {
+        'M1.1': 'SQL Basics',
+        'M1.2': 'SQL Advanced',
+        'M2.1': 'Python 101',
+        'M3.1': 'Pandas basics',
+        'M3.2': 'Prepare your data',
+        'M4': 'Data visualization'
+    }
+    df_merged = pd.merge(df_tag_counts, df_tag, how="left", on='id')
+    df_merged = df_merged.dropna(subset=['name']).reset_index(drop=True)
+    df_merged['module'] = df_merged['name'].apply(
+        lambda x: module_names.get(x, x))
+    df_merged = df_merged[:7]
+
+    decades = df_merged['module']
+    counts = df_merged['number_of_threads']
     colors = ['#b9fbc0', '#98f5e1', '#8eecf5',
               '#90dbf4', '#a3c4f3', '#cfbaf0', 'f1c0e8']
 
@@ -219,9 +236,13 @@ def graph_topics2(df):
                       marker=dict(colors=colors, line=dict(color='#000', width=1)))
 
     fig.update_layout(
-        margin=dict(t=20, l=0, r=0),
+        margin=dict(t=0, l=0, r=0),
         hoverlabel=dict(bgcolor='#000', font_color='#fff'),
-        height=350
+        legend=dict(
+            orientation="h",
+            y=-0.1,
+            x=0.1
+        )
     )
 
     return fig
