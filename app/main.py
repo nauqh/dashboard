@@ -19,6 +19,11 @@ st.set_page_config(
 st.title(f"📑Discord question-center May Recap")
 st.markdown("_Prototype v0.0.12_")
 
+st.warning("""
+    **✨Major changes:**
+    - Add new forum topics to address more specific questions
+    - Introducing to [Teobot](https://nauqh.github.io/teodocs/), a TA assistant for reminding late response threads""")
+
 
 @st.cache_data
 def load_data():
@@ -30,7 +35,7 @@ def load_data():
     )
     users = pd.read_csv("data/members_data.csv",
                         converters={'roles': literal_eval})
-    tags = pd.read_csv("tags.csv")
+    tags = pd.read_csv("data/tags.csv")
     return df, users, tags
 
 
@@ -147,32 +152,36 @@ with st.container(border=True):
 st.write("##")
 st.subheader("Problem address")
 
-with st.container(border=True):
-    st.write("**⚠️Problem**: Cannot calculate percentage of learner posting questions since every Discord member has `#learner` tag as default.")
-    st.write("I tried to find users that have only one `#learner` role but still not accurate since there are learners that have completed the course but still stay in Discord.")
-    st.write("""
-    **✅Solution**:                 
-    - Get active learners from google sheet's learner master list <br>  
-    - Assign `new_role` and filter only active learner using that role""")
+with st.expander("**May notes**", expanded=True):
+    with st.container(border=True):
+        st.write("**⚠️Problem**: Cannot calculate percentage of learner posting questions since every Discord member has `#learner` tag as default.")
+        st.write("I tried to find users that have only one `#learner` role but still not accurate since there are learners that have completed the course but still stay in Discord.")
+        st.write("""
+        **✅Solution**:                 
+        - Get active learners from google sheet's learner master list <br>  
+        - Assign `new_role` and filter only active learner using that role""")
 
-with st.container(border=True):
-    st.write("""
-    **NOTE**: Response time is determined by subtracting the initial reply message from the time the thread was created
 
-        response_time = time_of_first_reply - created_time_of_thread
+with st.expander("**April notes**"):
 
-    For threads that have delayed response:
-    - Some threads were posted after 10pm -> responded the next day
-    - After posting thread on forum, learner contact TA directly for solution. Solved in group chat.
-    - TA sessions are full on Wednesday and Friday morning shift -> some threads were responded late on those days (longest: 4 hours 18/4)""")
+    with st.container(border=True):
+        st.write("""
+        **NOTE**: Response time is determined by subtracting the initial reply message from the time the thread was created
 
-with st.container(border=True):
-    st.write("""
-    **NOTE**: Calculate time until resolved
+            response_time = time_of_first_reply - created_time_of_thread
 
-        resolve_time = time_of_last_reply - created_time_of_thread
+        For threads that have delayed response:
+        - Some threads were posted after 10pm -> responded the next day
+        - After posting thread on forum, learner contact TA directly for solution. Solved in group chat.
+        - TA sessions are full on Wednesday and Friday morning shift -> some threads were responded late on those days (longest: 4 hours 18/4)""")
 
-    **⚠️Problem**: There are threads that are refered back by TAs to solve similar queries. TA tag learner in old similar threads that has been solved -> `time_of_last_reply` is not accurate.
+    with st.container(border=True):
+        st.write("""
+        **NOTE**: Calculate time until resolved
 
-    **✅Solution**: Remove thread that has `resolve_time` more than a day.
-            """)
+            resolve_time = time_of_last_reply - created_time_of_thread
+
+        **⚠️Problem**: There are threads that are refered back by TAs to solve similar queries. TA tag learner in old similar threads that has been solved -> `time_of_last_reply` is not accurate.
+
+        **✅Solution**: Remove thread that has `resolve_time` more than a day.
+                """)

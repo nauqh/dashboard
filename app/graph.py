@@ -236,8 +236,9 @@ def graph_topics(df, df_tag):
                       marker=dict(colors=colors, line=dict(color='#000', width=1)))
 
     fig.update_layout(
-        margin=dict(t=0, l=0, r=0),
+        margin=dict(t=20, l=0, r=0),
         hoverlabel=dict(bgcolor='#000', font_color='#fff'),
+        height=350,
         legend=dict(
             orientation="h",
             y=-0.1,
