@@ -57,7 +57,7 @@ def graph_busy_hour(df_busy_hour):
 
     fig.add_annotation(
         x=0.58,
-        y=0.8,
+        y=1,
         xref='paper',
         yref='paper',
         text='Busiest hours',

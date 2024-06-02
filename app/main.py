@@ -68,12 +68,6 @@ with cols[2]:
         )
 
 # NOTE: ACTIVE LEARNER
-# Count threads by user
-# df_thread_counts = df['author_id'].value_counts().rename_axis(
-#     'id').reset_index(name='number_of_threads')
-# df_merged = pd.merge(df_thread_counts, df_learner, how="left", on='id')
-
-
 with st.container(border=True):
     st.subheader("Most active learners")
     option = ui.tabs(options=['April', 'May'],
@@ -87,13 +81,17 @@ with st.container(border=True):
     st.plotly_chart(fig, use_container_width=True)
 
 # NOTE: BUSIEST HOUR
-# Extract day of week and hour
-df['Hour'] = df['created_at'].dt.hour
 
-# Count threads by hour
-df_busy_hour = df.groupby(['Hour']).agg(
-    {'id': 'count'}).reset_index().rename(columns={'id': 'number_of_threads'})
-df_busy_hour['Hour'] = (df_busy_hour['Hour'] + 8) % 24
+
+def get_busy_hour_df(df):
+    df['Hour'] = df['created_at'].dt.hour
+    df_busy_hour = df.groupby(['Hour']).agg(
+        {'id': 'count'}).reset_index().rename(columns={'id': 'number_of_threads'})
+    df_busy_hour['Hour'] = (df_busy_hour['Hour'] + 8) % 24
+    return df_busy_hour
+
+
+df_busy_hour = get_busy_hour_df(df_may)
 fig_busy_hour, metric2 = graph_busy_hour(df_busy_hour)
 
 cols = st.columns([1, 3.5])
@@ -104,16 +102,21 @@ with cols[0]:
                   delta_color="off")
     with st.container(border=True):
         st.metric(label="**Threads In Busiest Hour**",
-                  value=metric2, delta=f"{metric2*100/len(df):.2f}% of total threads",
+                  value=metric2, delta=f"{metric2*100/len(df_may):.0f}% of total threads",
                   delta_color="off")
     with st.container(border=True):
         st.metric(label="**Threads In Busiest Day**",
-                  value=32, delta=f"{32*100/len(df):.2f}% of total threads",
+                  value=32, delta=f"{32*100/len(df_may):.0f}% of total threads",
                   delta_color="off")
 
 with cols[1]:
     with st.container(border=True):
         st.subheader("Time learners post the most questions")
+        option = ui.tabs(options=['April', 'May'],
+                         default_value='May', key="option2")
+        df_to_graph = df_may if option == 'May' else df_april
+        df_busy_hour = get_busy_hour_df(df_to_graph)
+        fig_busy_hour, metric2 = graph_busy_hour(df_busy_hour)
         st.plotly_chart(fig_busy_hour, use_container_width=True)
 
 cols = st.columns([1.5, 1])
@@ -160,9 +163,10 @@ st.subheader("Problem address")
 with st.container(border=True):
     st.write("**⚠️Problem**: Cannot calculate percentage of learner posting questions since every Discord member has `#learner` tag as default.")
     st.write("I tried to find users that have only one `#learner` role but still not accurate since there are learners that have completed the course but still stay in Discord.")
-    st.write("""**✅Solution**:                 
-    - Get active learners from google sheet's learner master list
-    - Assign `new_role`(hidden) and filter only active learner using that role""")
+    st.write("""
+    **✅Solution**:                 
+    - Get active learners from google sheet's learner master list <br>  
+    - Assign `new_role` and filter only active learner using that role""")
 
 with st.container(border=True):
     st.write("""
